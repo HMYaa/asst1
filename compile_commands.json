@@ -1,0 +1,364 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/objs/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/kmeansThread.o",
+      "kmeansThread.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/kmeansThread.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/objs/kmeansThread.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/utils.o",
+      "utils.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/utils.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/objs/utils.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/ppm.o",
+      "../common/ppm.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/ppm.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/objs/ppm.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/tasksys.o",
+      "../common/tasksys.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/tasksys.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog6_kmeans/objs/tasksys.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O2",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy/objs/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O2",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/saxpySerial.o",
+      "saxpySerial.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy/saxpySerial.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy/objs/saxpySerial.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O2",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/tasksys.o",
+      "../common/tasksys.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/tasksys.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog5_saxpy/objs/tasksys.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt/objs/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-march=native",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-c",
+      "-o",
+      "objs/sqrtSerial.o",
+      "sqrtSerial.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt/sqrtSerial.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog4_sqrt/objs/sqrtSerial.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-fPIC",
+      "-ffp-contract=off",
+      "-c",
+      "-o",
+      "objs/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/objs/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-fPIC",
+      "-ffp-contract=off",
+      "-c",
+      "-o",
+      "objs/mandelbrotSerial.o",
+      "mandelbrotSerial.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/mandelbrotSerial.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/objs/mandelbrotSerial.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-fPIC",
+      "-ffp-contract=off",
+      "-c",
+      "-o",
+      "objs/ppm.o",
+      "../common/ppm.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/ppm.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/objs/ppm.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-Wall",
+      "-fPIC",
+      "-ffp-contract=off",
+      "-c",
+      "-o",
+      "objs/tasksys.o",
+      "../common/tasksys.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/tasksys.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog3_mandelbrot_ispc/objs/tasksys.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "CS149intrin.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin/CS149intrin.cpp"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "logger.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin/logger.cpp"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-I../common",
+      "logger.o",
+      "CS149intrin.o",
+      "-o",
+      "myexp",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog2_vecintrin/myexp"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-std=c++11",
+      "-Wall",
+      "-fPIC",
+      "-c",
+      "-o",
+      "objs/main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/main.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/objs/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-std=c++11",
+      "-Wall",
+      "-fPIC",
+      "-c",
+      "-o",
+      "objs/mandelbrotSerial.o",
+      "mandelbrotSerial.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/mandelbrotSerial.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/objs/mandelbrotSerial.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-std=c++11",
+      "-Wall",
+      "-fPIC",
+      "-c",
+      "-o",
+      "objs/mandelbrotThread.o",
+      "mandelbrotThread.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads",
+    "file": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/mandelbrotThread.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/objs/mandelbrotThread.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-m64",
+      "-I../common",
+      "-Iobjs/",
+      "-O3",
+      "-std=c++11",
+      "-Wall",
+      "-fPIC",
+      "-c",
+      "-o",
+      "objs/ppm.o",
+      "../common/ppm.cpp"
+    ],
+    "directory": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads",
+    "file": "/home/yangxw/yxw/cs149/asst1/common/ppm.cpp",
+    "output": "/home/yangxw/yxw/cs149/asst1/prog1_mandelbrot_threads/objs/ppm.o"
+  }
+]
