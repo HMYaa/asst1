@@ -242,6 +242,14 @@ void clampedExpSerial(float* values, int* exponents, float* output, int N) {
 
 void clampedExpVector(float* values, int* exponents, float* output, int N) {
 
+  //
+  // CS149 STUDENTS TODO: Implement your vectorized version of
+  // clampedExpSerial() here.
+  //
+  // Your solution should work for any value of
+  // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
+  //
+
   __cs149_vec_float x, result;
   __cs149_vec_int exp, count;
   __cs149_vec_float one = _cs149_vset_float(1.f);
@@ -292,6 +300,11 @@ float arraySumSerial(float* values, int N) {
 // You can assume N is a multiple of VECTOR_WIDTH
 // You can assume VECTOR_WIDTH is a power of 2
 float arraySumVector(float* values, int N) {
+
+  //
+  // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
+  //
+
   __cs149_vec_float x;
   __cs149_vec_float sum = _cs149_vset_float(0.f);
   __cs149_mask maskAll = _cs149_init_ones();
