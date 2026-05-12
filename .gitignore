@@ -3,3 +3,4 @@
 *.ppm
 *.o
 *.log
+.aider*

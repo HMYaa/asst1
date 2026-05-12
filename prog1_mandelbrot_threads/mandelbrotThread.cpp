@@ -69,10 +69,30 @@ void workerThreadStart(WorkerArgs * const args) {
     // half of the image and thread 1 could compute the bottom half.
 
     // Cyclic 分配：从 threadId 行开始，每次跳过 numThreads 行
-    for (unsigned int row = args->threadId; row < args->height; row += args->numThreads) {
+    // for (unsigned int row = args->threadId; row < args->height; row += args->numThreads) {
+    //     mandelbrotSerial(args->x0, args->y0, args->x1, args->y1,
+    //                      args->width, args->height,
+    //                      row, 1,          // startRow=row, numRows=1（每次处理一行）
+    //                      args->maxIterations,
+    //                      args->output);
+    // }
+
+    // Block 按行划分：每线程约 height/numThreads 行，余数行分给前 rem 个线程
+    const unsigned int height = args->height;
+    const int tid = args->threadId;
+    const int n = args->numThreads;
+
+    const unsigned int baseRows = height / (unsigned int)n;
+    const unsigned int rem = height % (unsigned int)n;
+
+    const unsigned int startRow =
+        (unsigned int)tid * baseRows + (unsigned int)((tid < (int)rem) ? tid : rem);
+    const unsigned int numRows = baseRows + (unsigned int)((tid < (int)rem) ? 1 : 0);
+
+    if (numRows > 0) {
         mandelbrotSerial(args->x0, args->y0, args->x1, args->y1,
-                         args->width, args->height,
-                         row, 1,          // startRow=row, numRows=1（每次处理一行）
+                         (int)args->width, (int)args->height,
+                         (int)startRow, (int)numRows,
                          args->maxIterations,
                          args->output);
     }
