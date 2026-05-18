@@ -1,0 +1,39 @@
+# CS149 Assignment 1 — build artifacts & local tooling
+# Mirrors each prog's `make clean` (objs/, binaries, *.ppm, *~, …)
+
+# ── Object trees (prog1, prog3–6: OBJDIR=objs) ─────────────────────────────
+**/objs/
+
+# ── prog2: flat build (no objs/) ───────────────────────────────────────────
+prog2_vecintrin/myexp
+prog2_vecintrin/*.o
+
+# ── Linked executables (Makefile APP_NAME) ───────────────────────────────────
+prog1_mandelbrot_threads/mandelbrot
+prog3_mandelbrot_ispc/mandelbrot_ispc
+prog4_sqrt/sqrt
+prog5_saxpy/saxpy
+prog6_kmeans/kmeans
+
+# ── Runtime / visualization output ─────────────────────────────────────────
+*.ppm
+prog6_kmeans/*.log
+prog6_kmeans/*.png
+
+# ── clangd / bear (regenerate locally; not for version control) ─────────────
+**/compile_commands.json
+**/.cache/
+
+# ── Editor backups ───────────────────────────────────────────────────────────
+*~
+*.swp
+*.swo
+
+# ── OS junk ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Python (prog6 plot.py) ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
