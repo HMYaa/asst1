@@ -4,18 +4,12 @@
 #include <getopt.h>
 
 #include "CycleTimer.h"
+#include "mandelbrotThread.h"
 
 extern void mandelbrotSerial(
     float x0, float y0, float x1, float y1,
     int width, int height,
     int startRow, int numRows,
-    int maxIterations,
-    int output[]);
-
-extern void mandelbrotThread(
-    int numThreads,
-    float x0, float y0, float x1, float y1,
-    int width, int height,
     int maxIterations,
     int output[]);
 
@@ -42,12 +36,29 @@ scaleAndShift(float& x0, float& x1, float& y0, float& y1,
 
 }
 
+static PartitionStrategy parseStrategy(const char* name) {
+    if (strcmp(name, "block") == 0) {
+        return PARTITION_BLOCK;
+    }
+    if (strcmp(name, "interleaved") == 0) {
+        return PARTITION_INTERLEAVED;
+    }
+    fprintf(stderr, "Unknown strategy '%s' (use block or interleaved)\n", name);
+    exit(1);
+}
+
+static const char* strategyName(PartitionStrategy strategy) {
+    return strategy == PARTITION_BLOCK ? "block" : "interleaved";
+}
+
 void usage(const char* progname) {
     printf("Usage: %s [options]\n", progname);
     printf("Program Options:\n");
-    printf("  -t  --threads <N>  Use N threads\n");
-    printf("  -v  --view <INT>   Use specified view settings\n");
-    printf("  -?  --help         This message\n");
+    printf("  -t  --threads <N>     Use N threads\n");
+    printf("  -v  --view <INT>      Use specified view settings\n");
+    printf("  -s  --strategy <NAME> Partition: block | interleaved\n");
+    printf("  -p  --profile         Print per-thread time (once, first run)\n");
+    printf("  -?  --help            This message\n");
 }
 
 bool verifyResult (int *gold, int *result, int width, int height) {
@@ -73,6 +84,8 @@ int main(int argc, char** argv) {
     const unsigned int height = 1200;
     const int maxIterations = 256;
     int numThreads = 2;
+    PartitionStrategy strategy = PARTITION_INTERLEAVED;
+    bool profileThreads = false;
 
     float x0 = -2;
     float x1 = 1;
@@ -84,16 +97,28 @@ int main(int argc, char** argv) {
     static struct option long_options[] = {
         {"threads", 1, 0, 't'},
         {"view", 1, 0, 'v'},
+        {"strategy", 1, 0, 's'},
+        {"profile", 0, 0, 'p'},
         {"help", 0, 0, '?'},
         {0 ,0, 0, 0}
     };
 
-    while ((opt = getopt_long(argc, argv, "t:v:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "t:v:s:p?", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 't':
         {
             numThreads = atoi(optarg);
+            break;
+        }
+        case 's':
+        {
+            strategy = parseStrategy(optarg);
+            break;
+        }
+        case 'p':
+        {
+            profileThreads = true;
             break;
         }
         case 'v':
@@ -147,13 +172,21 @@ int main(int argc, char** argv) {
     double minThread = 1e30;
     for (int i = 0; i < 5; ++i) {
       memset(output_thread, 0, width * height * sizeof(int));
+        const bool profileThisRun = profileThreads && (i == 0);
+        if (profileThisRun) {
+            printf("--- per-thread (%s, %d threads) ---\n",
+                   strategyName(strategy), numThreads);
+        }
         double startTime = CycleTimer::currentSeconds();
-        mandelbrotThread(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread);
+        mandelbrotThreadWithStrategy(
+            numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread,
+            strategy, profileThisRun);
         double endTime = CycleTimer::currentSeconds();
         minThread = std::min(minThread, endTime - startTime);
     }
 
-    printf("[mandelbrot thread]:\t\t[%.3f] ms\n", minThread * 1000);
+    printf("[mandelbrot thread/%s]:\t[%.3f] ms\n",
+           strategyName(strategy), minThread * 1000);
     writePPMImage(output_thread, width, height, "mandelbrot-thread.ppm", maxIterations);
 
     if (! verifyResult (output_serial, output_thread, width, height)) {
