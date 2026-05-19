@@ -240,16 +240,139 @@ void clampedExpSerial(float* values, int* exponents, float* output, int N) {
   }
 }
 
-void clampedExpVector(float* values, int* exponents, float* output, int N) {
+// 编译时可改版本：1=动态 while，2=固定 9 轮乘方，3=固定轮次+精简 count（默认）
+#ifndef CLAMPED_EXP_VERSION
+#define CLAMPED_EXP_VERSION 3
+#endif
 
-  //
-  // CS149 STUDENTS TODO: Implement your vectorized version of
-  // clampedExpSerial() here.
-  //
-  // Your solution should work for any value of
-  // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
-  //
-  
+// 加分 arraySum：1=向量累加后标量归约，2=hadd+interleave 树形归约（默认）
+#ifndef ARRAY_SUM_VERSION
+#define ARRAY_SUM_VERSION 2
+#endif
+
+// v1：基础实现。内层用 while+cntbits，指数小时提前退出，但总向量指令更多。
+static void clampedExpVector_v1(float* values, int* exponents, float* output, int N) {
+  __cs149_vec_float x, result;
+  __cs149_vec_int exp, count;
+  __cs149_mask maskAll, maskZero, maskNonZero, maskActive, maskClamp;
+  __cs149_vec_float clampVal = _cs149_vset_float(9.999999f);
+  __cs149_vec_int zeroI = _cs149_vset_int(0);
+  __cs149_vec_int oneI = _cs149_vset_int(1);
+
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    // 尾部不足一整向量时，只启用前 rem 个 lane（对应 ./myexp -s 3）
+    maskAll = _cs149_init_ones(std::min(VECTOR_WIDTH, N - i));
+
+    _cs149_vload_float(x, values + i, maskAll);
+    _cs149_vload_int(exp, exponents + i, maskAll);
+
+    // exponent==0 → 结果为 1；否则先从 x 开始乘方
+    _cs149_veq_int(maskZero, exp, zeroI, maskAll);
+    maskNonZero = _cs149_mask_not(maskZero);
+    _cs149_vmove_float(result, x, maskAll);
+    _cs149_vset_float(result, 1.f, maskZero);
+
+    // count = exponent-1，表示还要乘几次 x（与串行 while(count>0) 一致）
+    _cs149_vset_int(count, 0, maskAll);
+    _cs149_vsub_int(count, exp, oneI, maskNonZero);
+
+    // 各 lane 的 count 不同，用 mask 模拟 while；无活跃 lane 时退出
+    while (true) {
+      _cs149_vgt_int(maskActive, count, zeroI, maskAll);
+      if (_cs149_cntbits(maskActive) == 0) {
+        break;
+      }
+      _cs149_vmult_float(result, result, x, maskActive);
+      _cs149_vsub_int(count, count, oneI, maskActive);
+    }
+
+    // 上限 clamp 到 9.999999
+    _cs149_vgt_float(maskClamp, result, clampVal, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskClamp);
+    _cs149_vstore_float(output + i, result, maskAll);
+  }
+}
+
+// v2：去掉 cntbits，固定跑 EXP_MAX-1(=9) 轮；指令更少，但指数小时有空转 lane。
+static void clampedExpVector_v2(float* values, int* exponents, float* output, int N) {
+  __cs149_vec_float x, result;
+  __cs149_vec_int exp, count;
+  __cs149_mask maskAll, maskZero, maskNonZero, maskActive, maskClamp;
+  __cs149_vec_float clampVal = _cs149_vset_float(9.999999f);
+  __cs149_vec_int zeroI = _cs149_vset_int(0);
+  __cs149_vec_int oneI = _cs149_vset_int(1);
+
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    maskAll = _cs149_init_ones(std::min(VECTOR_WIDTH, N - i));
+
+    _cs149_vload_float(x, values + i, maskAll);
+    _cs149_vload_int(exp, exponents + i, maskAll);
+
+    _cs149_veq_int(maskZero, exp, zeroI, maskAll);
+    maskNonZero = _cs149_mask_not(maskZero);
+    _cs149_vmove_float(result, x, maskAll);
+    _cs149_vset_float(result, 1.f, maskZero);
+
+    _cs149_vset_int(count, 0, maskAll);
+    _cs149_vsub_int(count, exp, oneI, maskNonZero);
+
+    // 最多乘 9 次（exponent<EXP_MAX），每轮仅 count>0 的 lane 参与
+    for (int iter = 0; iter < EXP_MAX - 1; iter++) {
+      _cs149_vgt_int(maskActive, count, zeroI, maskAll);
+      _cs149_vmult_float(result, result, x, maskActive);
+      _cs149_vsub_int(count, count, oneI, maskActive);
+    }
+
+    _cs149_vgt_float(maskClamp, result, clampVal, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskClamp);
+    _cs149_vstore_float(output + i, result, maskAll);
+  }
+}
+
+// v3（默认）：同 v2 固定轮次；count 由 exp 拷贝再减 1，exp==0 时 count 保持 0。
+static void clampedExpVector_v3(float* values, int* exponents, float* output, int N) {
+  __cs149_vec_float x, result;
+  __cs149_vec_int exp, count;
+  __cs149_mask maskAll, maskZero, maskNonZero, maskActive, maskClamp;
+  __cs149_vec_float clampVal = _cs149_vset_float(9.999999f);
+  __cs149_vec_int zeroI = _cs149_vset_int(0);
+  __cs149_vec_int oneI = _cs149_vset_int(1);
+
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    maskAll = _cs149_init_ones(std::min(VECTOR_WIDTH, N - i));
+
+    _cs149_vload_float(x, values + i, maskAll);
+    _cs149_vload_int(exp, exponents + i, maskAll);
+
+    _cs149_veq_int(maskZero, exp, zeroI, maskAll);
+    maskNonZero = _cs149_mask_not(maskZero);
+    _cs149_vmove_float(result, x, maskAll);
+    _cs149_vset_float(result, 1.f, maskZero);
+    // exp==0 → count 保持 0；否则 count=exp-1（还要乘几次 x）
+    _cs149_vmove_int(count, exp, maskAll);
+    _cs149_vsub_int(count, count, oneI, maskNonZero);
+
+    for (int iter = 0; iter < EXP_MAX - 1; iter++) {
+      _cs149_vgt_int(maskActive, count, zeroI, maskAll);
+      _cs149_vmult_float(result, result, x, maskActive);
+      _cs149_vsub_int(count, count, oneI, maskActive);
+    }
+
+    _cs149_vgt_float(maskClamp, result, clampVal, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskClamp);
+    _cs149_vstore_float(output + i, result, maskAll);
+  }
+}
+
+// 入口：按 CLAMPED_EXP_VERSION 分发到对应实现
+void clampedExpVector(float* values, int* exponents, float* output, int N) {
+#if CLAMPED_EXP_VERSION == 1
+  clampedExpVector_v1(values, exponents, output, N);
+#elif CLAMPED_EXP_VERSION == 2
+  clampedExpVector_v2(values, exponents, output, N);
+#else
+  clampedExpVector_v3(values, exponents, output, N);
+#endif
 }
 
 // returns the sum of all elements in values
@@ -265,16 +388,53 @@ float arraySumSerial(float* values, int N) {
 // returns the sum of all elements in values
 // You can assume N is a multiple of VECTOR_WIDTH
 // You can assume VECTOR_WIDTH is a power of 2
-float arraySumVector(float* values, int N) {
-  
-  //
-  // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
-  //
-  
-  for (int i=0; i<N; i+=VECTOR_WIDTH) {
+// v1：每块向量加到 sumVec，各 lane 存的是「同余位置」的部分和，最后标量相加。
+static float arraySumVector_v1(float* values, int N) {
+  __cs149_vec_float sumVec = _cs149_vset_float(0.f);
+  __cs149_mask maskAll = _cs149_init_ones();
 
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    __cs149_vec_float v;
+    _cs149_vload_float(v, values + i, maskAll);
+    _cs149_vadd_float(sumVec, sumVec, v, maskAll);
   }
 
-  return 0.0;
+  // sumVec[j] = values[j] + values[j+W] + ...，需把 W 个 lane 再加成标量
+  float sum = 0.f;
+  for (int j = 0; j < VECTOR_WIDTH; j++) {
+    sum += sumVec.value[j];
+  }
+  return sum;
+}
+
+// v2：寄存器内用 hadd 合并相邻 lane，interleave 调整布局，约 log2(W) 步归约。
+static float arraySumVector_v2(float* values, int N) {
+  __cs149_vec_float sumVec = _cs149_vset_float(0.f);
+  __cs149_mask maskAll = _cs149_init_ones();
+
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    __cs149_vec_float v;
+    _cs149_vload_float(v, values + i, maskAll);
+    _cs149_vadd_float(sumVec, sumVec, v, maskAll);
+  }
+
+  __cs149_vec_float tmp;
+  for (int stride = VECTOR_WIDTH / 2; stride >= 1; stride /= 2) {
+    _cs149_hadd_float(tmp, sumVec);           // 相邻 lane 相加，如 [a,b,c,d]→[a+b,a+b,c+d,c+d]
+    if (stride > 1) {
+      _cs149_interleave_float(sumVec, tmp);   // 把部分和挪到可继续 hadd 的位置
+    } else {
+      _cs149_vmove_float(sumVec, tmp, maskAll); // 最后一轮：总和已在 lane 0
+    }
+  }
+  return sumVec.value[0];
+}
+
+float arraySumVector(float* values, int N) {
+#if ARRAY_SUM_VERSION == 1
+  return arraySumVector_v1(values, N);
+#else
+  return arraySumVector_v2(values, N);
+#endif
 }
 
