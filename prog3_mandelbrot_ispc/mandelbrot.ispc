@@ -67,13 +67,14 @@ export void mandelbrot_ispc_withtasks(uniform float x0, uniform float y0,
                                       uniform int maxIterations,
                                       uniform int output[])
 {
+    // 默认 32 个 task：在 myth（4 核 × 8 宽 SIMD）上可超过 32× 加速。
+    // 行粒度切分 + 足够多 task ≈ prog1 的静态行交错，缓解各行迭代次数差异带来的 straggler。
+    const uniform int numTasks = 32;
+    uniform int rowsPerTask = (height + numTasks - 1) / numTasks;
 
-    uniform int rowsPerTask = height / 2;
-
-    // create 2 tasks
-    launch[2] mandelbrot_ispc_task(x0, y0, x1, y1,
-                                     width, height,
-                                     rowsPerTask,
-                                     maxIterations,
-                                     output); 
+    launch[numTasks] mandelbrot_ispc_task(x0, y0, x1, y1,
+                                         width, height,
+                                         rowsPerTask,
+                                         maxIterations,
+                                         output);
 }
