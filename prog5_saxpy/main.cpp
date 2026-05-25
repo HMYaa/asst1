@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <algorithm>
+#include <cstdlib>
 
 #include "CycleTimer.h"
 #include "saxpy_ispc.h"
@@ -28,6 +29,15 @@ static void verifyResult(int N, float* result, float* gold) {
 
 using namespace ispc;
 
+static float*
+allocAlignedFloats(unsigned int count) {
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, 32, count * sizeof(float)) != 0) {
+        return nullptr;
+    }
+    return static_cast<float*>(ptr);
+}
+
 
 int main() {
 
@@ -42,6 +52,11 @@ int main() {
     float* resultSerial = new float[N];
     float* resultISPC = new float[N];
     float* resultTasks = new float[N];
+    float* resultStreaming = allocAlignedFloats(N);
+    if (resultStreaming == nullptr) {
+        printf("Error: failed to allocate aligned streaming result buffer\n");
+        return 1;
+    }
 
     // initialize array values
     for (unsigned int i=0; i<N; i++)
@@ -51,6 +66,7 @@ int main() {
         resultSerial[i] = 0.f;
         resultISPC[i] = 0.f;
         resultTasks[i] = 0.f;
+        resultStreaming[i] = 0.f;
     }
 
     //
@@ -107,6 +123,26 @@ int main() {
            toGFLOPS(TOTAL_FLOPS, minTaskISPC));
 
     printf("\t\t\t\t(%.2fx speedup from use of tasks)\n", minISPC/minTaskISPC);
+
+    //
+    // Run the ISPC task implementation with streaming stores.
+    //
+    double minStreamingISPC = 1e30;
+    for (int i = 0; i < 3; ++i) {
+        double startTime = CycleTimer::currentSeconds();
+        saxpy_ispc_streaming_withtasks(N, scale, arrayX, arrayY, resultStreaming);
+        double endTime = CycleTimer::currentSeconds();
+        minStreamingISPC = std::min(minStreamingISPC, endTime - startTime);
+    }
+
+    verifyResult(N, resultStreaming, resultSerial);
+
+    printf("[saxpy stream ispc]:\t[%.3f] ms\t[%.3f] GB/s\t[%.3f] GFLOPS\n",
+           minStreamingISPC * 1000,
+           toBW(TOTAL_BYTES, minStreamingISPC),
+           toGFLOPS(TOTAL_FLOPS, minStreamingISPC));
+
+    printf("\t\t\t\t(%.2fx speedup from streaming stores)\n", minTaskISPC/minStreamingISPC);
     //printf("\t\t\t\t(%.2fx speedup from ISPC)\n", minSerial/minISPC);
     //printf("\t\t\t\t(%.2fx speedup from task ISPC)\n", minSerial/minTaskISPC);
 
@@ -115,6 +151,7 @@ int main() {
     delete[] resultSerial;
     delete[] resultISPC;
     delete[] resultTasks;
+    free(resultStreaming);
 
     return 0;
 }
