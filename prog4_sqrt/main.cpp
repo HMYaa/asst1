@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <pthread.h>
 #include <math.h>
 
@@ -18,10 +20,55 @@ static void verifyResult(int N, float* result, float* gold) {
     }
 }
 
-int main() {
+enum InputMode {
+    INPUT_RANDOM,
+    INPUT_BEST,
+    INPUT_WORST
+};
+
+static InputMode parseInputMode(int argc, char** argv) {
+    if (argc < 2 || strcmp(argv[1], "random") == 0) {
+        return INPUT_RANDOM;
+    }
+    if (strcmp(argv[1], "best") == 0) {
+        return INPUT_BEST;
+    }
+    if (strcmp(argv[1], "worst") == 0) {
+        return INPUT_WORST;
+    }
+
+    printf("Unknown input mode '%s'. Use random, best, or worst.\n", argv[1]);
+    exit(1);
+}
+
+static const char* inputModeName(InputMode mode) {
+    switch (mode) {
+        case INPUT_RANDOM: return "random";
+        case INPUT_BEST: return "best";
+        case INPUT_WORST: return "worst";
+    }
+    return "unknown";
+}
+
+static float inputValueForMode(InputMode mode, unsigned int i) {
+    const float slowConvergingValue = 2.999f;
+
+    switch (mode) {
+        case INPUT_RANDOM:
+            return .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+        case INPUT_BEST:
+            return slowConvergingValue;
+        case INPUT_WORST:
+            return (i % 8 == 0) ? slowConvergingValue : 1.f;
+    }
+    return 1.f;
+}
+
+int main(int argc, char** argv) {
 
     const unsigned int N = 20 * 1000 * 1000;
     const float initialGuess = 1.0f;
+    InputMode inputMode = parseInputMode(argc, argv);
 
     float* values = new float[N];
     float* output = new float[N];
@@ -29,13 +76,10 @@ int main() {
 
     for (unsigned int i=0; i<N; i++)
     {
-        // TODO: CS149 students.  Attempt to change the values in the
-        // array here to meet the instructions in the handout: we want
-        // to you generate best and worse-case speedups
-        
-        // starter code populates array with random input values
-        values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+        values[i] = inputValueForMode(inputMode, i);
     }
+
+    printf("Input mode: %s\n", inputModeName(inputMode));
 
     // generate a gold version to check results
     for (unsigned int i=0; i<N; i++)
