@@ -65,27 +65,21 @@ double dist(double *x, double *y, int nDim) {
  * Assigns each data point to its "closest" cluster centroid.
  */
 void computeAssignments(WorkerArgs *const args) {
-  double *minDist = new double[args->M];
-  
-  // Initialize arrays
-  for (int m =0; m < args->M; m++) {
-    minDist[m] = 1e30;
-    args->clusterAssignments[m] = -1;
-  }
+  for (int m = args->start; m < args->end; m++) {
+    double minDist = 1e30;
+    int bestAssignment = -1;
 
-  // Assign datapoints to closest centroids
-  for (int k = args->start; k < args->end; k++) {
-    for (int m = 0; m < args->M; m++) {
+    for (int k = 0; k < args->K; k++) {
       double d = dist(&args->data[m * args->N],
                       &args->clusterCentroids[k * args->N], args->N);
-      if (d < minDist[m]) {
-        minDist[m] = d;
-        args->clusterAssignments[m] = k;
+      if (d < minDist) {
+        minDist = d;
+        bestAssignment = k;
       }
     }
-  }
 
-  delete[] minDist;
+    args->clusterAssignments[m] = bestAssignment;
+  }
 }
 
 /**
@@ -173,6 +167,7 @@ void computeCost(WorkerArgs *const args) {
  */
 void kMeansThread(double *data, double *clusterCentroids, int *clusterAssignments,
                int M, int N, int K, double epsilon) {
+  static const int NUM_THREADS = 8;
 
   // Used to track convergence
   double *prevCost = new double[K];
@@ -180,14 +175,16 @@ void kMeansThread(double *data, double *clusterCentroids, int *clusterAssignment
 
   // The WorkerArgs array is used to pass inputs to and return output from
   // functions.
-  WorkerArgs args;
-  args.data = data;
-  args.clusterCentroids = clusterCentroids;
-  args.clusterAssignments = clusterAssignments;
-  args.currCost = currCost;
-  args.M = M;
-  args.N = N;
-  args.K = K;
+  WorkerArgs args[NUM_THREADS];
+  for (int i = 0; i < NUM_THREADS; i++) {
+    args[i].data = data;
+    args[i].clusterCentroids = clusterCentroids;
+    args[i].clusterAssignments = clusterAssignments;
+    args[i].currCost = currCost;
+    args[i].M = M;
+    args[i].N = N;
+    args[i].K = K;
+  }
 
   // Initialize arrays to track cost
   for (int k = 0; k < K; k++) {
@@ -203,13 +200,27 @@ void kMeansThread(double *data, double *clusterCentroids, int *clusterAssignment
       prevCost[k] = currCost[k];
     }
 
-    // Setup args struct
-    args.start = 0;
-    args.end = K;
+    // Parallelize assignment by partitioning data points. Each thread writes a
+    // distinct range of clusterAssignments, while centroids and data are read-only.
+    std::thread workers[NUM_THREADS];
+    int pointsPerThread = (M + NUM_THREADS - 1) / NUM_THREADS;
+    for (int i = 0; i < NUM_THREADS; i++) {
+      args[i].start = std::min(i * pointsPerThread, M);
+      args[i].end = std::min(args[i].start + pointsPerThread, M);
+    }
 
-    computeAssignments(&args);
-    computeCentroids(&args);
-    computeCost(&args);
+    for (int i = 1; i < NUM_THREADS; i++) {
+      workers[i] = std::thread(computeAssignments, &args[i]);
+    }
+    computeAssignments(&args[0]);
+    for (int i = 1; i < NUM_THREADS; i++) {
+      workers[i].join();
+    }
+
+    args[0].start = 0;
+    args[0].end = K;
+    computeCentroids(&args[0]);
+    computeCost(&args[0]);
 
     iter++;
   }
